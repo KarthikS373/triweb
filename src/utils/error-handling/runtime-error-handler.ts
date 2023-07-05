@@ -22,7 +22,7 @@ export const errorConverter = (
   const statusCode = error.status ? error.status : 500;
 
   try {
-    throw genericError(message, error.name, error.code, statusCode, error.cause ?? undefined);
+    next(genericError(message, error.name, error.code, statusCode, error.cause ?? undefined));
   } catch (error) {
     next(error);
   }
@@ -44,7 +44,7 @@ export const errorHandler = (
 ) => {
   logger.error(`${error.code}:${error.status} - ${error.message}`);
 
-  res.status(error.status).json({
+  return res.status(error.status).json({
     message: error.message,
     error: error,
     data: null,

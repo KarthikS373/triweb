@@ -10,6 +10,7 @@ const environmentSchema = Joi.object()
     BASE_URL: Joi.string().required().description('Base URL of the API'),
     API_SECRET: Joi.string().required().description('API secret key'),
     MONGO_URI: Joi.string().required().description('Mongo DB url'),
+    WEB3_STORAGE_API_TOKEN: Joi.string().required().description('Web3 storage api token'),
   })
   .unknown();
 
@@ -36,6 +37,12 @@ export default {
       // socketTimeoutMS: 45000,
       // family: 4, // IPv4
     },
+  },
+  api: {
+    secret: env.API_SECRET,
+  },
+  web3Storage: {
+    apiToken: env.WEB3_STORAGE_API_TOKEN,
   },
 };
 
