@@ -1,11 +1,39 @@
 import { NextFunction, Request, Response } from 'express';
+import { CIDString } from 'web3.storage';
 import { ZodError } from 'zod';
 
 import InternalServerError from '../errors/internal-server.error';
 import ValidationError from '../errors/validation.error';
+
+import { debug } from '../configs/logger';
 import { surveySchema, updateSurveySchema } from '../schema/survey.schema';
-import createWeb3StorageFolder from '../web3/web3storage/create-folder-with-data';
+import { createSurveyWithMetadata } from '../services/survey.service';
+import { fetchUserById } from '../services/user.service';
+import addFileToWeb3Storage from '../web3/web3storage/add-file';
 import updateSurveyFolder from '../web3/web3storage/update-folder';
+
+/**
+ * GET: /api/survey/
+ * @title Health check endpoint
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @returns {Promise<void>}
+ */
+export const healthCheck = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    res.status(200).json({
+      message: 'Survey service is up and running',
+      data: {
+        health: 'OK',
+      },
+      error: null,
+    });
+  } catch (error) {
+    next(InternalServerError('Failed generating a new survey', error));
+  }
+};
 
 /**
  * POST: /api/survey/create
@@ -23,23 +51,47 @@ export const createSurvey = async (req: Request, res: Response, next: NextFuncti
     try {
       const { title, description, questions, metadata } = req.body;
 
+      // TODO: Assuming auth middleware validates the user and attaches the user id
+      const userId = res.locals.user._id;
+
+      debug('Fetching survey creator details');
+      const user = await fetchUserById(userId);
+
       const surveyName = title.replace(/\s/g, '-').toLowerCase();
 
-      const cid = await createWeb3StorageFolder(
-        surveyName,
-        { title: title, description: description, ...metadata },
-        questions,
-      );
+      const metadataContent = {
+        title: title,
+        slug: surveyName,
+        description: description,
+        creator: user?.name,
+        creatorAddress: user?.address,
+        ...metadata,
+      };
 
-      if (!cid) {
-        next(InternalServerError('Failed generating survey', null));
+      let questionsCID: CIDString | null, metadataCID: CIDString | null;
+
+      debug('Uploading survey content to web3.storage');
+      try {
+        questionsCID = await addFileToWeb3Storage(`${surveyName}-questions.json`, questions);
+        metadataCID = await addFileToWeb3Storage(`${surveyName}-metadata.json`, metadataContent);
+      } catch (error: any) {
+        next(InternalServerError('Error uploading content', error));
+        return;
       }
+
+      if (!questionsCID || !metadataCID) {
+        next(InternalServerError('Content upload failed', null));
+      }
+
+      debug('Creating survey record in database');
+      const survey = await createSurveyWithMetadata(userId, surveyName, metadataCID, questionsCID);
 
       res.status(200).json({
         message: 'Survey created successfully',
         data: {
-          folderName: surveyName,
-          cid: cid,
+          survey: survey,
+          metadata: metadataContent,
+          creator: user?._id,
         },
         error: null,
       });

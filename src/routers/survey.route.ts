@@ -1,8 +1,17 @@
 import { Router } from 'express';
 
-import { createSurvey, updateSurvey } from '../controllers/survey.controller';
+import { createSurvey, updateSurvey, healthCheck } from '../controllers/survey.controller';
 
 const router = Router();
+
+/*
+ * GET: /api/survey
+ * @title Health check endpoint
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ */
+router.get('/', healthCheck);
 
 /*
  * POST: /api/survey/create
@@ -44,4 +53,3 @@ router.post('/create', createSurvey);
 router.post('/update', updateSurvey);
 
 export default router;
-

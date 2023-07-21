@@ -1,5 +1,9 @@
 import winston from 'winston';
 
+import env from './env';
+
+const isDevelopmentEnv = env.env === 'development';
+
 const logger = winston.createLogger({
   transports: [
     new winston.transports.Console(),
@@ -13,6 +17,17 @@ const logger = winston.createLogger({
     }),
   ),
 });
+
+export const debug = (message: string): void => {
+  if (isDevelopmentEnv) {
+    logger.info(message);
+  }
+};
+
+export const routeLogger = (req: any, res: any, next: any): void => {
+  logger.info(`${req.method} ${req.originalUrl}`);
+  next();
+};
 
 export default logger;
 
