@@ -2,7 +2,25 @@ import User, { IUser } from '../models/user.schema';
 import Survey, { ISurvey } from '../models/survey.schema';
 import Response, { IResponse } from '../models/response.schema';
 
-import { fetchUserById } from './user.service';
+/*
+ * @title Fetch a survey by ID
+ * @param {string} surveyId - The ID of the survey to fetch
+ * @returns {Promise<ISurvey>} - The fetched survey
+ * @throws {Error} - Failed to fetch survey
+ */
+export const fetchSurveyById = async (surveyId: string): Promise<ISurvey> => {
+  try {
+    const survey: ISurvey | null = await Survey.findById(surveyId);
+
+    if (!survey) {
+      throw new Error('Survey not found');
+    }
+
+    return survey;
+  } catch (error) {
+    throw new Error('Failed to fetch survey');
+  }
+};
 
 /**
  * @title Create and attach a survey to a user
@@ -22,14 +40,8 @@ export const createSurveyWithMetadata = async (
   description?: string,
 ): Promise<ISurvey> => {
   try {
-    const user: IUser | null = await fetchUserById(userId);
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
     const survey: ISurvey = await Survey.create({
-      user: user._id,
+      user: userId,
       name: surveyName,
       description: description,
       metadataCID: metadata,
@@ -38,7 +50,6 @@ export const createSurveyWithMetadata = async (
 
     return survey;
   } catch (error) {
-    console.log(error);
     throw new Error('Failed to attach survey to user');
   }
 };

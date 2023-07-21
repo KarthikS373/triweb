@@ -24,9 +24,24 @@ router.get('/', healthCheck);
  *
  * Sample response body:
  *   "data": {
- *    "folderName": "",
- *    "cid": ""
- *   }
+ *       "survey": {
+    *       "user": "",
+    *       "name": "",
+    *       "metadataCID": "",
+    *       "questionsCID": "",
+    *       "_id": "",
+ *       },
+ *       "metadata": {
+    *       "title": "",
+    *       "slug": "",
+    *       "description": "",
+    *       "creator": "",
+    *       "creatorAddress": "",
+    *       "key": "",
+    *       "endTime": ""
+ *       },
+ *       "creator": ""
+ *   },
  *
  * Sample request body:
  *  "title": "Survey Title",
@@ -53,3 +68,4 @@ router.post('/create', createSurvey);
 router.post('/update', updateSurvey);
 
 export default router;
+
