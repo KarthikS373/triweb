@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 
+import { debug } from '../configs/logger';
 import InternalServerError from '../errors/internal-server.error';
 import ValidationError from '../errors/validation.error';
-
-import { debug } from '../configs/logger';
 import { ISurvey } from '../models/survey.schema';
 import { IUser } from '../models/user.schema';
 import { addResponseSchema, responseSchema } from '../schema/response.schema';
@@ -97,4 +96,3 @@ export const addResponse = async (req: Request, res: Response, next: NextFunctio
     next(InternalServerError('Failed creating survey', error));
   }
 };
-

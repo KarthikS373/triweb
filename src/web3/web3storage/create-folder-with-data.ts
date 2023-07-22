@@ -27,4 +27,3 @@ const createWeb3StorageFolder = async (
 };
 
 export default createWeb3StorageFolder;
-

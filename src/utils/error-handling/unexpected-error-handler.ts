@@ -18,4 +18,3 @@ const unexpectedErrorHandler = (server: Server, error: unknown) => {
 };
 
 export default unexpectedErrorHandler;
-

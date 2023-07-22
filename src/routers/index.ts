@@ -1,13 +1,12 @@
 import { Router } from 'express';
 
-import isAuth from '../middlewares/auth.middleware';
-
 import developmentRouter from './development';
 import healthRouter from './health.route';
-import surveyRouter from './survey.route';
 import responseRouter from './response.route';
+import surveyRouter from './survey.route';
 
 import { routeLogger } from '../configs/logger';
+import isAuth from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -24,4 +23,3 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export default router;
-

@@ -1,6 +1,6 @@
-import User, { IUser } from '../models/user.schema';
-import Survey, { ISurvey } from '../models/survey.schema';
 import Response, { IResponse } from '../models/response.schema';
+import Survey, { ISurvey } from '../models/survey.schema';
+import User, { IUser } from '../models/user.schema';
 
 /*
  * @title Fetch a survey by ID
@@ -54,3 +54,26 @@ export const createSurveyWithMetadata = async (
   }
 };
 
+/**
+ * @title Update a survey metadata
+ * @param {string} surveyId - The ID of the survey to update
+ * @param {string} metadata - The CID of the survey
+ * @returns {Promise<ISurvey>} - The updated survey
+ * @throws {Error} - Failed to update survey
+ * @throws {Error} - Survey not found
+ */
+export const updateSurveyMetadata = async (surveyId: string, metadata: string): Promise<ISurvey> => {
+  try {
+    const survey: ISurvey | null = await Survey.findByIdAndUpdate(surveyId, {
+      metadataCID: metadata,
+    });
+
+    if (!survey) {
+      throw new Error('Survey not found');
+    }
+
+    return survey;
+  } catch (error) {
+    throw new Error('Failed to update survey');
+  }
+};

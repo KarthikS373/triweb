@@ -15,4 +15,3 @@ const unauthorizedError = (message: string): UnauthorizedError => {
 };
 
 export default unauthorizedError;
-

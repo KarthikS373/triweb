@@ -30,4 +30,3 @@ export const routeLogger = (req: any, res: any, next: any): void => {
 };
 
 export default logger;
-

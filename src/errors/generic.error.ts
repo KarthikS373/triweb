@@ -17,4 +17,3 @@ const genericError = (message: string, name: string, code: string, status: numbe
 };
 
 export default genericError;
-

@@ -45,4 +45,3 @@ export default {
     apiToken: env.WEB3_STORAGE_API_TOKEN,
   },
 };
-

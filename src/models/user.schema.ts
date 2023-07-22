@@ -5,7 +5,7 @@ export interface IUser extends Document {
   address: string;
 }
 
-interface IUserModel extends Model<IUser> {}
+type IUserModel = Model<IUser>;
 
 const userSchema = new mongoose.Schema<IUser>({
   name: {
@@ -23,4 +23,3 @@ const userSchema = new mongoose.Schema<IUser>({
 const User: Model<IUser> = mongoose.model<IUser, IUserModel>('User', userSchema);
 
 export default User;
-

@@ -1,16 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-import { CIDString } from 'web3.storage';
 import { ZodError } from 'zod';
 
+import { debug } from '../configs/logger';
 import InternalServerError from '../errors/internal-server.error';
 import ValidationError from '../errors/validation.error';
-
-import { debug } from '../configs/logger';
 import { surveySchema, updateSurveySchema } from '../schema/survey.schema';
-import { createSurveyWithMetadata } from '../services/survey.service';
+import { createSurveyWithMetadata, fetchSurveyById, updateSurveyMetadata } from '../services/survey.service';
 import { fetchUserById } from '../services/user.service';
 import addFileToWeb3Storage from '../web3/web3storage/add-file';
-import updateSurveyFolder from '../web3/web3storage/update-folder';
+
+import type { CIDString } from 'web3.storage';
 
 /**
  * GET: /api/survey/
@@ -118,31 +117,46 @@ export const createSurvey = async (req: Request, res: Response, next: NextFuncti
  */
 export const updateSurvey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    updateSurveySchema.parse(req.body);
+    const { id, description, metadata, title } = updateSurveySchema.parse(req.body);
     try {
-      const { title, description, questions, metadata, cid } = req.body;
+      debug('Fetching survey details');
+      const survey = await fetchSurveyById(id);
+      const user = await fetchUserById(survey.user);
 
-      const surveyName = title.replace(/\s/g, '-').toLowerCase();
+      const surveyName = (title ?? survey.name).replace(/\s/g, '-').toLowerCase();
 
-      await updateSurveyFolder(cid, surveyName, {
+      const metadataContent = {
         title: title,
+        slug: surveyName,
         description: description,
+        creator: user?.name,
+        creatorAddress: user?.address,
         ...metadata,
-      });
+      };
 
-      if (!cid) {
-        next(InternalServerError('Failed updating survey', null));
+      let metadataCID: CIDString | null;
+
+      debug('Uploading survey content to web3.storage');
+      try {
+        metadataCID = await addFileToWeb3Storage(`${surveyName}-metadata.json`, metadataContent);
+      } catch (error: any) {
+        next(InternalServerError('Error uploading content', error));
+        return;
       }
+
+      if (!metadataCID) {
+        next(InternalServerError('Content upload failed', null));
+      }
+
+      debug('Updating survey record in database');
+      await updateSurveyMetadata(survey.id, metadataCID);
 
       res.status(200).json({
         message: 'Survey updated successfully',
         data: {
-          folderName: surveyName,
-          metadata: {
-            title: title,
-            description: description,
-            ...metadata,
-          },
+          survey: survey,
+          metadata: metadataContent,
+          creator: user?._id,
         },
         error: null,
       });
@@ -156,4 +170,3 @@ export const updateSurvey = async (req: Request, res: Response, next: NextFuncti
     next(InternalServerError('Failed updating survey', error));
   }
 };
-

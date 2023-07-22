@@ -24,4 +24,3 @@ app.use(errorConverter);
 app.use(errorHandler);
 
 export default app;
-

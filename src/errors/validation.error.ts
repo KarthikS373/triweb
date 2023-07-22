@@ -19,4 +19,3 @@ const validationError = (error: ZodError): ValidationError => {
 };
 
 export default validationError;
-

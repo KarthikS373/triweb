@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import User from '../../models/user.schema';
+
 import internalServerError from '../../errors/internal-server.error';
+import User from '../../models/user.schema';
 
 const router = Router();
 
@@ -26,4 +27,3 @@ router.post('/create-dummy-user', async (req, res, next) => {
 });
 
 export default router;
-

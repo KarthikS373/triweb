@@ -9,7 +9,7 @@ export interface IResponse extends Document {
   responseCID: string;
 }
 
-interface IResponseModel extends Model<IResponse> {}
+type IResponseModel = Model<IResponse>;
 
 const responseSchema = new mongoose.Schema<IResponse>({
   survey: {
@@ -31,4 +31,3 @@ const responseSchema = new mongoose.Schema<IResponse>({
 const Response: Model<IResponse> = mongoose.model<IResponse, IResponseModel>('Response', responseSchema);
 
 export default Response;
-

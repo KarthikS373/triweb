@@ -10,7 +10,7 @@ export interface ISurvey extends Document {
   questionsCID: string;
 }
 
-interface ISurveyModel extends Model<ISurvey> {}
+type ISurveyModel = Model<ISurvey>;
 
 const surveySchema = new mongoose.Schema<ISurvey>({
   user: {
@@ -41,4 +41,3 @@ const surveySchema = new mongoose.Schema<ISurvey>({
 const Survey: Model<ISurvey> = mongoose.model<ISurvey, ISurveyModel>('Survey', surveySchema);
 
 export default Survey;
-

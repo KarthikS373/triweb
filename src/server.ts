@@ -19,4 +19,3 @@ mongoose.connect(env.mongoose.url).then(async () => {
 
 process.on('uncaughtException', error => unexpectedErrorHandler(server, error));
 process.on('unhandledRejection', error => unexpectedErrorHandler(server, error));
-

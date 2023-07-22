@@ -35,4 +35,3 @@ const router = Router();
 router.post('/add', addResponse);
 
 export default router;
-

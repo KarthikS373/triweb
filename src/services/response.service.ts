@@ -1,6 +1,6 @@
-import User, { IUser } from '../models/user.schema';
-import Survey, { ISurvey } from '../models/survey.schema';
 import Response, { IResponse } from '../models/response.schema';
+import Survey, { ISurvey } from '../models/survey.schema';
+import User, { IUser } from '../models/user.schema';
 
 /**
  * Fetches a response by its ID.
@@ -44,4 +44,3 @@ export const createResponse = async (userId: string, surveyId: string, responseC
     throw new Error('Failed to create the response');
   }
 };
-

@@ -21,10 +21,8 @@ export const surveySchema = z.object({
 });
 
 export const updateSurveySchema = z.object({
-  cid: z.string(),
+  id: z.string(),
   title: z.string().min(SURVEY_TITLE_MIN_SIZE).max(SURVEY_TITLE_MAX_SIZE).optional(),
   description: z.string().min(SURVEY_DESCRIPTION_MIN_SIZE).max(SURVEY_DESCRIPTION_MAX_SIZE).optional(),
-  questions: z.array(questionSchema).optional(),
   metadata: z.record(z.string()).optional(),
 });
-

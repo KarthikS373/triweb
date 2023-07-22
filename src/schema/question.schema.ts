@@ -17,4 +17,3 @@ export const questionSchema = z.object({
   options: z.array(z.string().min(1)).optional(),
   required: z.boolean().optional(),
 });
-

@@ -1,6 +1,6 @@
-import User, { IUser } from '../models/user.schema';
-import Survey, { ISurvey } from '../models/survey.schema';
 import Response, { IResponse } from '../models/response.schema';
+import Survey, { ISurvey } from '../models/survey.schema';
+import User, { IUser } from '../models/user.schema';
 
 /**
  * @title Fetch user by ID
@@ -21,4 +21,3 @@ export const fetchUserById = async (userId: string): Promise<IUser> => {
     throw new Error('Failed to fetch user');
   }
 };
-
