@@ -4,7 +4,6 @@ import User, { IUser } from '../models/user.schema';
 
 /**
  * Fetches a response by its ID.
- *
  * @param {string} responseId - The ID of the response to fetch.
  * @returns {Promise<IResponse>} - The fetched response.
  * @throws {Error} - Failed to fetch the response or response not found.
@@ -20,6 +19,22 @@ export const fetchResponseById = async (responseId: string): Promise<IResponse> 
     return response;
   } catch (error) {
     throw new Error('Failed to fetch the response');
+  }
+};
+
+/**
+ * Fetches all responses for a survey.
+ * @param {string} surveyId - The ID of the survey for which the responses are fetched.
+ * @returns {Promise<IResponse[]>} - The fetched response.
+ * @throws {Error} - Failed to fetch the response or response not found.
+ */
+export const fetchResponsesBySurveyId = async (surveyId: string): Promise<IResponse[]> => {
+  try {
+    const responses: IResponse[] = await Response.find({ survey: surveyId }).populate('user').exec();
+
+    return responses;
+  } catch (error) {
+    throw new Error('Failed to fetch the responses');
   }
 };
 

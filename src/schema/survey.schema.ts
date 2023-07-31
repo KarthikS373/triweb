@@ -26,3 +26,13 @@ export const updateSurveySchema = z.object({
   description: z.string().min(SURVEY_DESCRIPTION_MIN_SIZE).max(SURVEY_DESCRIPTION_MAX_SIZE).optional(),
   metadata: z.record(z.string()).optional(),
 });
+
+export const getAllSurveySchema = z.object({
+  metadata: z.enum(['true', 'false']).optional(),
+  questions: z.enum(['true', 'false']).optional(),
+  responses: z.enum(['true', 'false']).optional(),
+});
+
+export const getSurveyByIdSchema = z.object({
+  responses: z.enum(['true', 'false']).optional(),
+});

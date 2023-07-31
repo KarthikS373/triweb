@@ -1,6 +1,12 @@
 import { Router } from 'express';
 
-import { createSurvey, updateSurvey, healthCheck } from '../controllers/survey.controller';
+import {
+  createSurvey,
+  updateSurvey,
+  healthCheck,
+  getAllSurveys,
+  getSurveyById,
+} from '../controllers/survey.controller';
 
 const router = Router();
 
@@ -11,7 +17,108 @@ const router = Router();
  * @param {Response} res - The Express response object.
  * @param {NextFunction} next - The Express next function.
  */
-router.get('/', healthCheck);
+router.get('/health', healthCheck);
+
+/*
+ * GET: /api/survey/all
+ * @title Get all surveys
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @throws {ValidationError} - Failed creating survey
+ *
+ * Sample request query:
+ *  "metadata": "true" | "false" (optional)
+ *  "questions": "true" | "false" (optional)
+ *
+ * Sample response body:
+ *  "data": {
+ *      "surveys": [
+ *      {
+ *          "id": "",
+ *          "user": {
+ *              "id": "",
+ *              "name": "",
+ *              "address": ""
+ *          },
+ *          "name": "",
+ *          "metadataCID": "",
+ *          "questionsCID": "",
+ *          "metadata": {
+ *              "title": "",
+ *              "slug": "",
+ *              "description": "",
+ *              "creator": "",
+ *              "creatorAddress": "",
+ *              "key": "",
+ *              "endTime": ""
+ *          },
+ *          "questions": [
+ *          {
+ *              "question": "",
+ *              "type": "",
+ *              "required": true | false
+ *          },
+ *          {
+ *              "question": "",
+ *              "type": "",
+ *              "required": true | false
+ *          }
+ *          ]
+ *      }
+ *   ]
+ */
+router.get('/', getAllSurveys);
+
+/*
+ * GET: /api/survey/:id
+ * @title Get a survey by id
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @throws {ValidationError} - Failed creating survey
+ *
+ * Sample request query:
+ *  responses: "true" | "false" (optional)
+ *
+ * Sample response body:
+ * "data": {
+ *      "survey": {
+ *          "id": "",
+ *          "user": {
+ *              "id": "",
+ *              "name": "",
+ *              "address": ""
+ *          },
+ *          "name": "",
+ *          "metadataCID": "",
+ *          "questionsCID": "",
+ *          "metadata": {
+ *              "title": "",
+ *              "slug": "",
+ *              "description": "",
+ *              "creator": "",
+ *              "creatorAddress": "",
+ *              "key": "",
+ *              "endTime": ""
+ *          },
+ *          "questions": [
+ *          {
+ *              "question": "",
+ *              "type": "",
+ *              "required": true | false
+ *          },
+ *          {
+ *              "question": "",
+ *              "type": "",
+ *              "required": true | false
+ *          }
+ *          ]
+ *      }
+ */
+router.get('/:id', getSurveyById);
 
 /*
  * POST: /api/survey/create
@@ -74,6 +181,14 @@ router.post('/create', createSurvey);
  * @throws {InternalServerError} - Failed generating health report
  * @throws {ValidationError} - Failed creating survey
  *
+ * Sample request body:
+ *   "title": "Survey Title",
+ *   "description": "Survey Description",
+ *   "metadata": {
+ *      "key": "value",
+ *      "end_date": ""
+ *   }
+ *
  * Sample response body:
  *  "data": {
  *      "survey": {
@@ -92,13 +207,6 @@ router.post('/create', createSurvey);
  *     },
  *   },
  *
- * Sample request body:
- * "title": "Survey Title",
- * "description": "Survey Description",
- * "metadata": {
- *    "key": "value",
- *    "end_date": ""
- * }
  */
 router.post('/update', updateSurvey);
 
