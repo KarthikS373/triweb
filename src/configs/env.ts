@@ -11,6 +11,9 @@ const environmentSchema = Joi.object()
     API_SECRET: Joi.string().required().description('API secret key'),
     MONGO_URI: Joi.string().required().description('Mongo DB url'),
     WEB3_STORAGE_API_TOKEN: Joi.string().required().description('Web3 storage api token'),
+    ACCESS_TOKEN_PUBLIC_KEY: Joi.string().required().description('Access token public key'),
+    ACCESS_TOKEN_PRIVATE_KEY: Joi.string().required().description('Access token private key'),
+    ACCESS_TOKEN_EXPIRATION_TIME: Joi.string().required().description('Access token expiration time'),
   })
   .unknown();
 
@@ -44,4 +47,7 @@ export default {
   web3Storage: {
     apiToken: env.WEB3_STORAGE_API_TOKEN,
   },
+  accessTokenPublicKey: env.ACCESS_TOKEN_PUBLIC_KEY,
+  accessTokenPrivateKey: env.ACCESS_TOKEN_PRIVATE_KEY,
+  accessTokenExpiresIn: env.ACCESS_TOKEN_EXPIRATION_TIME,
 };

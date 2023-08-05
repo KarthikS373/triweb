@@ -9,7 +9,7 @@ import internalServerError from '../errors/internal-server.error';
  * @param {NextFunction} next - The Express next function.
  * @returns {Promise<void>}
  */
-export const getHealth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getHealth = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     res.status(200).json({
       message: 'Server is healthy',

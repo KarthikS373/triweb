@@ -1,10 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-
-const dummyUser = {
-  _id: '64bad621deff9b3b8e5fd500',
-  name: 'Developer',
-  address: '0x80ee44eC09243ab38e2fc07f227254730965d9C1',
-};
+import env from '../configs/env';
+import { verifyPayload } from '../helpers/jwt';
+import User from '../models/user.schema';
 
 /**
  * Authentication middleware that sends a dummy user for testing purposes.
@@ -13,10 +9,42 @@ const dummyUser = {
  * @param {express.Response} res - The Express response object.
  * @param {express.NextFunction} next - The next middleware function.
  */
-const isAuth = (req: Request, res: Response, next: NextFunction): void => {
-  res.locals.user = dummyUser;
+export const isAuth = async (req: any, res: any, next: any): Promise<void> => {
+  try {
+    let accessToken = null;
+    if (req.headers.authorization?.startsWith('Bearer') === true) {
+      accessToken = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies?.access_token != null) {
+      accessToken = req.cookies.access_token;
+    }
 
-  next();
+    if (accessToken == null) {
+      res.status(401).send({ error: 'Unauthorized' });
+      return;
+    }
+
+    // Validate Access Token
+    const decoded = verifyPayload({
+      token: accessToken,
+      publicKey: env.accessTokenPublicKey,
+    });
+
+    if (decoded == null) {
+      res.status(401).send({ error: 'Unauthorized' });
+      return;
+    }
+
+    const user = await User.findOne({ address: decoded.address });
+
+    if (user?.address === undefined ) {
+      res.status(401).send({ error: 'Unauthorized' });
+      return;
+    }
+
+    req.user = user;
+
+    next();
+  } catch (err: any) {
+    res.status(401).send({ error: err });
+  }
 };
-
-export default isAuth;
