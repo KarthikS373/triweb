@@ -2,10 +2,11 @@ import { Router } from 'express';
 
 import {
   createSurvey,
-  updateSurvey,
-  healthCheck,
+  getAllAvailableSurveys,
   getAllSurveys,
   getSurveyById,
+  healthCheck,
+  updateSurvey,
 } from '../controllers/survey.controller';
 
 const router = Router();
@@ -18,6 +19,58 @@ const router = Router();
  * @param {NextFunction} next - The Express next function.
  */
 router.get('/health', healthCheck);
+
+/*
+ * GET: /api/survey/
+ * @title Get all surveys of a particular user
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @throws {ValidationError} - Failed creating survey
+ *
+ * Sample request query:
+ *  "metadata": "true" | "false" (optional)
+ *  "questions": "true" | "false" (optional)
+ *
+ * Sample response body:
+ *  "data": {
+ *      "surveys": [
+ *      {
+ *          "id": "",
+ *          "user": {
+ *              "id": "",
+ *              "name": "",
+ *              "address": ""
+ *          },
+ *          "name": "",
+ *          "metadataCID": "",
+ *          "questionsCID": "",
+ *          "metadata": {
+ *              "title": "",
+ *              "slug": "",
+ *              "description": "",
+ *              "creator": "",
+ *              "creatorAddress": "",
+ *              "key": "",
+ *              "endTime": ""
+ *          },
+ *          "questions": [
+ *          {
+ *              "question": "",
+ *              "type": "",
+ *              "required": true | false
+ *          },
+ *          {
+ *              "question": "",
+ *              "type": "",
+ *              "required": true | false
+ *          }
+ *          ]
+ *      }
+ *   ]
+ */
+router.get('/', getAllSurveys);
 
 /*
  * GET: /api/survey/all
@@ -69,7 +122,7 @@ router.get('/health', healthCheck);
  *      }
  *   ]
  */
-router.get('/', getAllSurveys);
+router.get('/all', getAllAvailableSurveys);
 
 /*
  * GET: /api/survey/:id

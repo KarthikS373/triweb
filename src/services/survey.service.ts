@@ -16,6 +16,24 @@ export const fetchAllSurveys = async (): Promise<ISurvey[]> => {
   }
 };
 
+/**
+ * @title Fetch all surveys
+ * @returns {Promise<ISurvey[]>} - All surveys
+ * @throws {Error} - Failed to fetch all surveys
+ */
+export const fetchAllSurveysFromUser = async ({ userId }: { userId: string }): Promise<ISurvey[]> => {
+  try {
+    const surveys: ISurvey[] = await Survey.find({
+      user: userId,
+    })
+      .populate('user')
+      .exec();
+    return surveys;
+  } catch (error) {
+    throw new Error('Failed to fetch all surveys');
+  }
+};
+
 /*
  * @title Fetch a survey by ID
  * @param {string} surveyId - The ID of the survey to fetch

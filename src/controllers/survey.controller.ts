@@ -3,12 +3,14 @@ import { ZodError } from 'zod';
 
 import { debug } from '../configs/logger';
 import InternalServerError from '../errors/internal-server.error';
+import unauthorizedError from '../errors/unauthorized.error';
 import ValidationError from '../errors/validation.error';
 import { getAllSurveySchema, getSurveyByIdSchema, surveySchema, updateSurveySchema } from '../schema/survey.schema';
 import { fetchResponsesBySurveyId } from '../services/response.service';
 import {
   createSurveyWithMetadata,
   fetchAllSurveys,
+  fetchAllSurveysFromUser,
   fetchSurveyById,
   updateSurveyMetadata,
 } from '../services/survey.service';
@@ -43,6 +45,96 @@ export const healthCheck = async (req: Request, res: Response, next: NextFunctio
 };
 
 /**
+ * GET: /api/survey/all
+ * @title Get all surveys
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @returns {Promise<void>}
+ */
+export const getAllAvailableSurveys = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { metadata, questions, responses } = getAllSurveySchema.parse(req.query);
+    try {
+      const surveys = await fetchAllSurveys();
+
+      const formattedSurvey: IResponseSurvey[] = surveys.map(survey => {
+        const surveyName = survey?.name?.replace(/\s/g, '-').toLowerCase();
+
+        return {
+          id: survey._id,
+          user: {
+            id: survey?.user?._id,
+            name: survey?.user?.name,
+            address: survey?.user?.address,
+          },
+          name: survey.name,
+          slug: surveyName,
+          metadataCID: survey.metadataCID,
+          questionsCID: survey.questionsCID,
+          metadata: null,
+          questions: null,
+          responses: null,
+        };
+      });
+
+      for (const survey of formattedSurvey) {
+        if (metadata === 'true') {
+          const metadata = await retrieveFileFromWeb3Storage(`${survey.metadataCID}/${survey.slug}-metadata.json`);
+          survey.metadata = metadata;
+        }
+        if (questions === 'true') {
+          const questions = await retrieveFileFromWeb3Storage(`${survey.questionsCID}/${survey.slug}-questions.json`);
+          survey.questions = questions;
+        }
+        if (responses === 'true') {
+          const surveyResponses = await fetchResponsesBySurveyId(survey.id);
+          const formattedResponses: IResponse[] = [];
+
+          for (const response of surveyResponses) {
+            const storredResponse = await retrieveFileFromWeb3Storage(
+              `${response.responseCID}/${response?.user?.address}-${survey.slug}-response.json`,
+            );
+
+            const formattedResponse: IResponse = {
+              id: response._id,
+              responseCID: response.responseCID,
+              response: storredResponse,
+              user: {
+                id: response?.user?._id,
+                name: response?.user?.name,
+                address: response?.user?.address,
+              },
+            };
+
+            formattedResponses.push(formattedResponse);
+          }
+
+          survey.responses = formattedResponses;
+        }
+      }
+
+      res.status(200).json({
+        message: 'All surveys fetched successfully',
+        data: {
+          surveys: formattedSurvey,
+        },
+        error: null,
+      });
+    } catch (error) {
+      next(InternalServerError('Failed fetching all surveys', error));
+    }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      next(ValidationError(error));
+    }
+
+    next(InternalServerError('Failed fetching all surveys', error));
+  }
+};
+
+/**
  * GET: /api/survey/
  * @title Get all surveys
  * @param {Request} req - The Express request object.
@@ -55,7 +147,13 @@ export const getAllSurveys = async (req: Request, res: Response, next: NextFunct
   try {
     const { metadata, questions, responses } = getAllSurveySchema.parse(req.query);
     try {
-      const surveys = await fetchAllSurveys();
+      const user = (req as any).user;
+
+      if (!user) {
+        next(Error('Unauthorized'));
+      }
+
+      const surveys = await fetchAllSurveysFromUser(user._id);
 
       const formattedSurvey: IResponseSurvey[] = surveys.map(survey => {
         const surveyName = survey?.name?.replace(/\s/g, '-').toLowerCase();
@@ -148,7 +246,17 @@ export const getSurveyById = async (req: Request, res: Response, next: NextFunct
     const { responses } = getSurveyByIdSchema.parse(req.query);
 
     try {
+      const user = (req as any).user;
+
+      if (!user) {
+        next(unauthorizedError('Unauthorized'));
+      }
+
       const survey = await fetchSurveyById(id);
+
+      if (survey?.user?._id !== user._id) {
+        next(unauthorizedError('Unauthorized'));
+      }
 
       const surveyName = survey?.name?.replace(/\s/g, '-').toLowerCase();
 
