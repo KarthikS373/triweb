@@ -42,7 +42,7 @@ export const fetchAllSurveysFromUser = async ({ userId }: { userId: string }): P
  */
 export const fetchSurveyById = async (surveyId: string): Promise<ISurvey> => {
   try {
-    const survey: ISurvey | null = await Survey.findById(surveyId);
+    const survey: ISurvey | null = await Survey.findById(surveyId).populate('user').exec();
 
     if (!survey) {
       throw new Error('Survey not found');

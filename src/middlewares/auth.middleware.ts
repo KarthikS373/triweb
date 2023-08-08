@@ -1,4 +1,6 @@
 import env from '../configs/env';
+import { debug } from '../configs/logger';
+import unauthorizedError from '../errors/unauthorized.error';
 import { verifyPayload } from '../helpers/jwt';
 import User from '../models/user.schema';
 
@@ -12,14 +14,16 @@ import User from '../models/user.schema';
 export const isAuth = async (req: any, res: any, next: any): Promise<void> => {
   try {
     let accessToken = null;
+
     if (req.headers.authorization?.startsWith('Bearer') === true) {
       accessToken = req.headers.authorization.split(' ')[1];
     } else if (req.cookies?.access_token != null) {
       accessToken = req.cookies.access_token;
     }
 
+    debug('Access: ' + accessToken);
     if (accessToken == null) {
-      res.status(401).send({ error: 'Unauthorized' });
+      next(unauthorizedError('Unauthorized'));
       return;
     }
 
@@ -30,18 +34,19 @@ export const isAuth = async (req: any, res: any, next: any): Promise<void> => {
     });
 
     if (decoded == null) {
-      res.status(401).send({ error: 'Unauthorized' });
+      next(unauthorizedError('Unauthorized'));
       return;
     }
 
     const user = await User.findOne({ address: decoded.address });
 
-    if (user?.address === undefined ) {
+    if (user?.address === undefined) {
       res.status(401).send({ error: 'Unauthorized' });
       return;
     }
 
     req.user = user;
+    res.locals.user = user;
 
     next();
   } catch (err: any) {

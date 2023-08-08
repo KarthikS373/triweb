@@ -147,13 +147,15 @@ export const getAllSurveys = async (req: Request, res: Response, next: NextFunct
   try {
     const { metadata, questions, responses } = getAllSurveySchema.parse(req.query);
     try {
-      const user = (req as any).user;
+      const user = res.locals.user._id;
 
       if (!user) {
         next(Error('Unauthorized'));
       }
 
-      const surveys = await fetchAllSurveysFromUser(user._id);
+      debug('Fetching surveys of user: ' + user);
+      const surveys = await fetchAllSurveysFromUser({ userId: user });
+      debug("User's surveys: " + surveys);
 
       const formattedSurvey: IResponseSurvey[] = surveys.map(survey => {
         const surveyName = survey?.name?.replace(/\s/g, '-').toLowerCase();
@@ -246,15 +248,23 @@ export const getSurveyById = async (req: Request, res: Response, next: NextFunct
     const { responses } = getSurveyByIdSchema.parse(req.query);
 
     try {
-      const user = (req as any).user;
+      const user = res.locals.user._id;
+      debug('User: ' + user);
 
       if (!user) {
         next(unauthorizedError('Unauthorized'));
       }
 
+      debug('Fetching survey: ' + id);
       const survey = await fetchSurveyById(id);
+      debug('Survey: ' + survey);
 
-      if (survey?.user?._id !== user._id) {
+      const areIdsEqual = survey?.user?._id.toString().localeCompare(user) === 0;
+      debug(
+        'Survey user verification: ' +
+          JSON.stringify({ surveyUser: survey?.user?._id, user: user, verify: areIdsEqual }),
+      );
+      if (!areIdsEqual) {
         next(unauthorizedError('Unauthorized'));
       }
 
@@ -339,8 +349,11 @@ export const createSurvey = async (req: Request, res: Response, next: NextFuncti
   try {
     const { title, description, questions, metadata } = surveySchema.parse(req.body);
     try {
-      // TODO: Assuming auth middleware validates the user and attaches the user id
       const userId = res.locals.user._id;
+
+      if (!userId) {
+        next(unauthorizedError('Unauthorized'));
+      }
 
       debug('Fetching survey creator details');
       const user = await fetchUserById(userId);
