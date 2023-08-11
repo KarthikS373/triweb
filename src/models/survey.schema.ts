@@ -1,5 +1,6 @@
 import mongoose, { Document, Model } from 'mongoose';
 
+import type { IOrganization } from './organization.schema';
 import type { IUser } from './user.schema';
 
 export interface ISurvey extends Document {
@@ -8,6 +9,7 @@ export interface ISurvey extends Document {
   description?: string;
   metadataCID: string;
   questionsCID: string;
+  organization?: IOrganization['_id'];
 }
 
 type ISurveyModel = Model<ISurvey>;
