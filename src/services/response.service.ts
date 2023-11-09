@@ -17,7 +17,7 @@ export const fetchResponseById = async (responseId: string): Promise<IResponse> 
     }
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error('Failed to fetch the response');
   }
 };
@@ -33,7 +33,7 @@ export const fetchResponsesBySurveyId = async (surveyId: string): Promise<IRespo
     const responses: IResponse[] = await Response.find({ survey: surveyId }).populate('user').exec();
 
     return responses;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error('Failed to fetch the responses');
   }
 };
@@ -55,7 +55,7 @@ export const createResponse = async (userId: string, surveyId: string, responseC
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error('Failed to create the response');
   }
 };

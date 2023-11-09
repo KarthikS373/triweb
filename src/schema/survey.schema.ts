@@ -15,7 +15,9 @@ const SURVEY_DESCRIPTION_MAX_SIZE = 10000;
 */
 export const surveySchema = z.object({
   title: z.string().min(SURVEY_TITLE_MIN_SIZE).max(SURVEY_TITLE_MAX_SIZE),
+  endDate: z.string(),
   description: z.string().min(SURVEY_DESCRIPTION_MIN_SIZE).max(SURVEY_DESCRIPTION_MAX_SIZE),
+  organization: z.string().optional(),
   questions: z.array(questionSchema),
   metadata: z.record(z.string()),
 });
@@ -34,5 +36,16 @@ export const getAllSurveySchema = z.object({
 });
 
 export const getSurveyByIdSchema = z.object({
+  responses: z.enum(['true', 'false']).optional(),
+});
+
+export const deleteSurveySchema = z.object({
+  id: z.string(),
+});
+
+export const getSurveysByOrganizationSchema = z.object({
+  organization: z.string(),
+  metadata: z.enum(['true', 'false']).optional(),
+  questions: z.enum(['true', 'false']).optional(),
   responses: z.enum(['true', 'false']).optional(),
 });

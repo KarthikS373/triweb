@@ -1,4 +1,4 @@
-import mongoose, { Document, Model } from 'mongoose';
+import mongoose, { Date, Document, Model } from 'mongoose';
 
 import type { IOrganization } from './organization.schema';
 import type { IUser } from './user.schema';
@@ -6,6 +6,7 @@ import type { IUser } from './user.schema';
 export interface ISurvey extends Document {
   user: IUser['_id'];
   name: string;
+  endDate?: Date;
   description?: string;
   metadataCID: string;
   questionsCID: string;
@@ -18,6 +19,10 @@ const surveySchema = new mongoose.Schema<ISurvey>({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
+  },
+  endDate: {
+    type: mongoose.Schema.Types.Date,
     required: true,
   },
   name: {
@@ -37,6 +42,11 @@ const surveySchema = new mongoose.Schema<ISurvey>({
   questionsCID: {
     type: String,
     required: true,
+  },
+  organization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    required: false,
   },
 });
 

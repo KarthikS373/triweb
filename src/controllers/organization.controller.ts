@@ -4,7 +4,6 @@ import internalServerError from '../errors/internal-server.error';
 import notFoundError from '../errors/not-found.error';
 import unauthorizedError from '../errors/unauthorized.error';
 import validationError from '../errors/validation.error';
-import Organization from '../models/organization.schema';
 import { organizationSchema } from '../schema/organization.schema';
 import {
   getAllOrganizations as getAllOrganizationsService,
@@ -36,7 +35,7 @@ export const getAllOrganizations = async (req: Request, res: Response, next: Nex
       },
       error: null,
     });
-  } catch (error) {
+  } catch (error: any) {
     next(internalServerError(error.message ?? 'Sorry, an error occured', error));
   }
 };
@@ -70,7 +69,7 @@ export const getAllUserOrganizations = async (req: Request, res: Response, next:
       },
       error: null,
     });
-  } catch (error) {
+  } catch (error: any) {
     next(internalServerError(error.message ?? 'Sorry, an error occured', error));
   }
 };
@@ -99,10 +98,10 @@ export const createOrganization = async (req: Request, res: Response, next: Next
         },
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
       next(internalServerError(error.message ?? 'Sorry, an error occured', error));
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.name === 'ValidationError') {
       next(validationError(error));
     }
@@ -130,7 +129,7 @@ export const getOrganization = async (req: Request, res: Response, next: NextFun
       },
       error: null,
     });
-  } catch (error) {
+  } catch (error: any) {
     next(internalServerError(error.message ?? 'Sorry, an error occured', error));
   }
 };

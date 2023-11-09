@@ -20,7 +20,7 @@ export const getHealth = async (req: any, res: Response, next: NextFunction): Pr
       },
       error: null,
     });
-  } catch (error) {
+  } catch (error: any) {
     next(internalServerError('Failed generating health report', error));
   }
 };

@@ -23,7 +23,7 @@ export const errorConverter = (
 
   try {
     next(genericError(message, error.name, error.code, statusCode, error.cause ?? undefined));
-  } catch (error) {
+  } catch (error: any) {
     next(error);
   }
 };

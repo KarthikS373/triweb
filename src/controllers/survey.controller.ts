@@ -5,11 +5,20 @@ import { debug } from '../configs/logger';
 import InternalServerError from '../errors/internal-server.error';
 import unauthorizedError from '../errors/unauthorized.error';
 import ValidationError from '../errors/validation.error';
-import { getAllSurveySchema, getSurveyByIdSchema, surveySchema, updateSurveySchema } from '../schema/survey.schema';
+import {
+  deleteSurveySchema,
+  getAllSurveySchema,
+  getSurveyByIdSchema,
+  getSurveysByOrganizationSchema,
+  surveySchema,
+  updateSurveySchema,
+} from '../schema/survey.schema';
 import { fetchResponsesBySurveyId } from '../services/response.service';
 import {
   createSurveyWithMetadata,
+  deleteSurveyById,
   fetchAllSurveys,
+  fetchAllSurveysFromOrganization,
   fetchAllSurveysFromUser,
   fetchSurveyById,
   updateSurveyMetadata,
@@ -39,7 +48,7 @@ export const healthCheck = async (req: Request, res: Response, next: NextFunctio
       },
       error: null,
     });
-  } catch (error) {
+  } catch (error: any) {
     next(InternalServerError('Failed generating a new survey', error));
   }
 };
@@ -61,6 +70,14 @@ export const getAllAvailableSurveys = async (req: Request, res: Response, next: 
 
       const formattedSurvey: IResponseSurvey[] = surveys.map(survey => {
         const surveyName = survey?.name?.replace(/\s/g, '-').toLowerCase();
+
+        const surveyEnd = survey?.endDate; // "2002-12-09T00:00:00.000Z"
+
+        if (surveyEnd) {
+          debug(`Survey: ${surveyName} & Survey end date: ${surveyEnd}`);
+          // Need an expired flag if survey endDate is more than current, otherwise a flag if survey is active
+          // const surveyEndDate = new Date(surveyEnd);
+        }
 
         return {
           id: survey._id,
@@ -122,10 +139,10 @@ export const getAllAvailableSurveys = async (req: Request, res: Response, next: 
         },
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
       next(InternalServerError('Failed fetching all surveys', error));
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof ZodError) {
       next(ValidationError(error));
     }
@@ -220,10 +237,10 @@ export const getAllSurveys = async (req: Request, res: Response, next: NextFunct
         },
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
       next(InternalServerError('Failed fetching all surveys', error));
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof ZodError) {
       next(ValidationError(error));
     }
@@ -323,10 +340,10 @@ export const getSurveyById = async (req: Request, res: Response, next: NextFunct
         },
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
       next(InternalServerError('Failed fetching survey by id', error));
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof ZodError) {
       next(ValidationError(error));
     }
@@ -347,7 +364,7 @@ export const getSurveyById = async (req: Request, res: Response, next: NextFunct
  */
 export const createSurvey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { title, description, questions, metadata } = surveySchema.parse(req.body);
+    const { title, description, questions, metadata, organization, endDate } = surveySchema.parse(req.body);
     try {
       const userId = res.locals.user._id;
 
@@ -363,6 +380,7 @@ export const createSurvey = async (req: Request, res: Response, next: NextFuncti
       const metadataContent = {
         title: title,
         slug: surveyName,
+        organization: organization ?? null,
         description: description,
         creator: user?.name,
         creatorAddress: user?.address,
@@ -385,7 +403,14 @@ export const createSurvey = async (req: Request, res: Response, next: NextFuncti
       }
 
       debug('Creating survey record in database');
-      const survey = await createSurveyWithMetadata(userId, surveyName, metadataCID, questionsCID);
+      const survey = await createSurveyWithMetadata(
+        userId,
+        surveyName,
+        endDate,
+        metadataCID,
+        questionsCID,
+        organization,
+      );
 
       res.status(200).json({
         message: 'Survey created successfully',
@@ -396,7 +421,7 @@ export const createSurvey = async (req: Request, res: Response, next: NextFuncti
         },
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
       next(InternalServerError('Failed generating a new survey', error));
     }
   } catch (error: any) {
@@ -462,7 +487,7 @@ export const updateSurvey = async (req: Request, res: Response, next: NextFuncti
         },
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
       next(InternalServerError('Failed generating a new survey', error));
     }
   } catch (error: any) {
@@ -470,5 +495,127 @@ export const updateSurvey = async (req: Request, res: Response, next: NextFuncti
       next(ValidationError(error));
     }
     next(InternalServerError('Failed updating survey', error));
+  }
+};
+
+/**
+ * POST: /api/survey/delete
+ * @title Delete a survey
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @throws {ValidationError} - Failed creating survey
+ * @returns {Promise<void>}
+ */
+export const deleteSurvey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = deleteSurveySchema.parse(req.body);
+    try {
+      debug('Fetching survey details');
+
+      debug('Deleting survey record in database');
+      const survey = await deleteSurveyById(id);
+
+      res.status(200).json({
+        message: 'Survey deleted successfully',
+        data: {
+          deletedSurvey: survey,
+        },
+        error: null,
+      });
+    } catch (error: any) {
+      next(InternalServerError('Failed generating a new survey', error));
+    }
+  } catch (error: any) {
+    if (error instanceof ZodError) {
+      next(ValidationError(error));
+    }
+    next(InternalServerError('Failed deleting survey', error));
+  }
+};
+
+/**
+ * POST: /api/survey/organization
+ * @title Get all surveys of an organization
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @throws {InternalServerError} - Failed generating health report
+ * @throws {ValidationError} - Failed creating survey
+ * @returns {Promise<void>}
+ */
+export const getSurveysByOrganization = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { organization, metadata, questions, responses } = getSurveysByOrganizationSchema.parse(req.query);
+    try {
+      debug('Fetching survey details by organizations');
+
+      debug('Fetching survey record in database');
+      const surveys = await fetchAllSurveysFromOrganization(organization);
+
+      const formattedSurvey: IResponseSurvey[] = surveys.map(survey => {
+        const surveyName = survey?.name?.replace(/\s/g, '-').toLowerCase();
+
+        return {
+          id: survey._id,
+          user: {
+            id: survey?.user?._id,
+            name: survey?.user?.name,
+            address: survey?.user?.address,
+          },
+          name: survey.name,
+          slug: surveyName,
+          metadataCID: survey.metadataCID,
+          questionsCID: survey.questionsCID,
+          metadata: null,
+          questions: null,
+          responses: null,
+        };
+      });
+
+      for (const survey of formattedSurvey) {
+        if (metadata === 'true') {
+          const metadata = await retrieveFileFromWeb3Storage(`${survey.metadataCID}/${survey.slug}-metadata.json`);
+          survey.metadata = metadata;
+        }
+        if (questions === 'true') {
+          const questions = await retrieveFileFromWeb3Storage(`${survey.questionsCID}/${survey.slug}-questions.json`);
+          survey.questions = questions;
+        }
+        if (responses === 'true') {
+          const surveyResponses = await fetchResponsesBySurveyId(survey.id);
+          const formattedResponses: IResponse[] = [];
+
+          for (const response of surveyResponses) {
+            const storredResponse = await retrieveFileFromWeb3Storage(
+              `${response.responseCID}/${response?.user?.address}-${survey.slug}-response.json`,
+            );
+
+            const formattedResponse: IResponse = {
+              id: response._id,
+              responseCID: response.responseCID,
+              response: storredResponse,
+              user: {
+                id: response?.user?._id,
+                name: response?.user?.name,
+                address: response?.user?.address,
+              },
+            };
+
+            formattedResponses.push(formattedResponse);
+          }
+
+          survey.responses = formattedResponses;
+        }
+      }
+    } catch (error: any) {
+      next(InternalServerError('Failed generating a new survey', error));
+    }
+  } catch (error: any) {
+    if (error instanceof ZodError) {
+      next(ValidationError(error));
+    }
+    next(InternalServerError('Failed deleting survey', error));
   }
 };

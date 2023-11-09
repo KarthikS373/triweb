@@ -5,6 +5,7 @@ import {
   getAllAvailableSurveys,
   getAllSurveys,
   getSurveyById,
+  getSurveysByOrganization,
   healthCheck,
   updateSurvey,
 } from '../controllers/survey.controller';
@@ -262,5 +263,7 @@ router.post('/create', createSurvey);
  *
  */
 router.post('/update', updateSurvey);
+
+router.get('/organizations', getSurveysByOrganization);
 
 export default router;

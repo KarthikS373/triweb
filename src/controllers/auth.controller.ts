@@ -11,7 +11,7 @@ export const login = async (req: any, res: any, next: any): Promise<void> => {
       signature,
     });
     res.status(200).json(result);
-  } catch (error) {
+  } catch (error: any) {
     next(internalServerError('something went wrong', error));
   }
 };
@@ -26,7 +26,7 @@ export const register = async (req: any, res: any, next: any): Promise<void> => 
       signature,
     });
     res.status(200).json(result);
-  } catch (error) {
+  } catch (error: any) {
     next(internalServerError('something went wrong', error));
   }
 };

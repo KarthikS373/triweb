@@ -9,8 +9,8 @@ export const getAllOrganizations = async (): Promise<IOrganization[]> => {
     }
 
     return organizations;
-  } catch (error) {
-    throw new Error(error.message);
+  } catch (error: any) {
+    throw new Error(error?.message);
   }
 };
 
@@ -36,8 +36,8 @@ export const createOrganization = async ({
     await organization.save();
 
     return organization;
-  } catch (error) {
-    throw new Error(error.message);
+  } catch (error: any) {
+    throw new Error(error?.message);
   }
 };
 
@@ -50,8 +50,8 @@ export const getOrganization = async (id: string): Promise<IOrganization> => {
     }
 
     return organization;
-  } catch (error) {
-    throw new Error(error.message);
+  } catch (error: any) {
+    throw new Error(error?.message);
   }
 };
 
@@ -64,8 +64,8 @@ export const getAllUserOrganizations = async (userId: string): Promise<IOrganiza
     }
 
     return organizations;
-  } catch (error) {
-    throw new Error(error.message);
+  } catch (error: any) {
+    throw new Error(error?.message);
   }
 };
 
